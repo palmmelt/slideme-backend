@@ -1,5 +1,6 @@
 import { Router } from "express";
 import auth from "../controllers/auth.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.post("/register", auth.register);
 router.post("/login", auth.login);
 
 // ? -ดูข้อมูลผู้ใช้ที่ล็อกอิน
-// TODO : req.body = { id }
-router.post("/get-profile", auth.getProfile);
+// TODO : ใช้ customerId จาก token ผ่าน middleware
+router.post("/get-profile",[authenticate], auth.getProfile);
 
 export { router };

@@ -3,7 +3,7 @@ import { jwt } from "../utils/jwt.js";
 export const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(401).json({ status: false, message: "Unauthorized" });
+    return res.status(401).json({ status: false, message: "Unauthorized" ,data:null});
   }
 
   const token = authHeader.split(" ")[1];
@@ -12,6 +12,6 @@ export const authenticate = (req, res, next) => {
     req.user = { id, role };
     next();
   } catch (err) {
-    return res.status(401).json({status: false, message: "Invalid token" });
+    return res.status(401).json({status: false, message: "Invalid token",data:null });
   }
 };

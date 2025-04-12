@@ -11,7 +11,10 @@ export const registerUser = async ({
   phoneNumber,
   role,
 }) => {
-  const existing = await prisma[role].findUnique({ where: { email } });
+  const existing =
+    (await prisma.customer.findUnique({ where: { email } })) ||
+    (await prisma.driver.findUnique({ where: { email } }));
+    
   if (existing) throw new Error("Email already exists");
 
   const hashed = await bcrypt.hash(password, 10);
@@ -25,13 +28,16 @@ export const registerUser = async ({
 };
 
 export const loginUser = async ({ email, password }) => {
-
   const isLogin = login({ email, password });
   if (!isLogin) throw new Error("Invalid credentials");
 
-  const token = jwt.sign({ id: user.id, role:isLogin?.role }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
+  const token = jwt.sign(
+    { id: user.id, role: isLogin?.role },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "1h",
+    }
+  );
 
   return { token, role };
 };

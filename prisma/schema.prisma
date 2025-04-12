@@ -29,6 +29,7 @@ model Customer {
 model Driver {
   id                Int     @id @default(autoincrement())
   slideCarServiceId Int     @map("slide_car_service_id")
+  vihicleId         Int     @map("vihicle_id")
   name              String?
   surname           String?
   phoneNumber       String? @map("phone_number")
@@ -40,6 +41,7 @@ model Driver {
   image             String?
 
   slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
+  vihicle         Vehicle         @relation(fields: [vihicleId], references: [id])
   slideRequests   SlideRequest[]
 
   @@map("drivers")
@@ -55,6 +57,7 @@ model Vehicle {
   slideRequests     SlideRequest[]
 
   slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
+  Driver          Driver[]
 
   @@map("vehicles")
 }
