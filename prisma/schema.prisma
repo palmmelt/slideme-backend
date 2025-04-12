@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id            Int            @id @default(autoincrement())
+  name          String?
+  surname       String?
+  phoneNumber   String?        @map("phone_number")
+  password      String?
+  email         String         @unique
+  slideRequests SlideRequest[]
+
+  @@map("customers")
+}
+
+model Driver {
+  id                Int     @id @default(autoincrement())
+  slideCarServiceId Int     @map("slide_car_service_id")
+  name              String?
+  surname           String?
+  phoneNumber       String? @map("phone_number")
+  password          String?
+  idNumber          String  @unique @map("id_number")
+  email             String  @unique
+  bankAccountNumber String? @map("bank_account_number")
+  bankName          String? @map("bank_name")
+  image             String?
+
+  slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
+  slideRequests   SlideRequest[]
+
+  @@map("drivers")
+}
+
+model Vehicle {
+  id                Int            @id @default(autoincrement())
+  slideCarServiceId Int            @map("slide_car_service_id")
+  brand             String?
+  model             String?
+  licensePlate      String         @unique @map("license_plate")
+  vin               String         @unique
+  slideRequests     SlideRequest[]
+
+  slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
+
+  @@map("vehicles")
+}
+
+model SlideRequest {
+  id          Int      @id @default(autoincrement())
+  customerId  Int
+  vehicleId   Int
+  driverId    Int
+  requestTime DateTime @map("request_time")
+  status      Status
+  price       Decimal? @db.Decimal(10, 2)
+  note        String?
+  image       String?
+  latitude    Decimal? @db.Decimal(10, 8)
+  longitude   Decimal? @db.Decimal(11, 8)
+
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id])
+  driver       Driver        @relation(fields: [driverId], references: [id])
+  chatMessages ChatMessage[]
+  bids         Bid[]
+
+  @@map("slide_requests")
+}
+
+model ChatMessage {
+  id             Int      @id @default(autoincrement())
+  slideRequestId Int      @map("slide_request_id")
+  sender         ChatRole
+  message        String
+  sentAt         DateTime @map("sent_at")
+
+  slideRequest SlideRequest @relation(fields: [slideRequestId], references: [id])
+
+  @@map("chat_messages")
+}
+
+model Bid {
+  id                Int       @id @default(autoincrement())
+  slideRequestId    Int       @map("slide_request_id")
+  slideCarServiceId Int       @map("slide_car_service_id")
+  price             Decimal   @db.Decimal(10, 2)
+  isAccepted        Boolean
+  acceptedTime      DateTime?
+
+  slideRequest    SlideRequest    @relation(fields: [slideRequestId], references: [id])
+  slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
+
+  @@map("bids")
+}
+
+model SlideCarService {
+  id          Int       @id @default(autoincrement())
+  serviceName String?   @map("service_name")
+  description String?
+  drivers     Driver[]
+  vehicles    Vehicle[]
+  bids        Bid[]
+
+  @@map("slide_car_service")
+}
+
+model Garage {
+  id          Int     @id @default(autoincrement())
+  name        String?
+  address     String?
+  phoneNumber String? @map("phone_number")
+  email       String  @unique
+
+  @@map("garages")
+}
+
+enum ChatRole {
+  customer
+  garage
+  driver
+}
+
+enum Status {
+  pending
+  in_progress
+  completed
+  closed
+}
