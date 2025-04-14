@@ -1,6 +1,6 @@
 export const permissionRole = (permissionRoles) => {
     return (req, res, next) => {
-      const { role } = req.user;
+      const { urole } = req.user;
       try {
         const hasPermission = permissionRoles.includes(role);
   

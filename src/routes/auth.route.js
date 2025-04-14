@@ -11,11 +11,11 @@ const router = Router();
 // ? role = enum{customer,driver}
 router.post("/register", auth.register);
 
-// ? -login
+// -login
 // TODO : req.body = { email, password}
 router.post("/login", auth.login);
 
-// ? -ดูข้อมูลผู้ใช้ที่ล็อกอิน
+// -ดูข้อมูลผู้ใช้ที่ล็อกอิน
 // TODO : ใช้ customerId จาก token ผ่าน middleware
 router.post("/get-profile",[authenticate], auth.getProfile);
 

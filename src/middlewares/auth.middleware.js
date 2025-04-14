@@ -8,8 +8,8 @@ export const authenticate = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
   try {
-    const { id, role } = jwt.verify(token);
-    req.user = { id, role };
+    const { uid, urole } = jwt.verify(token);
+    req.user = { uid, urole };
     next();
   } catch (err) {
     return res.status(401).json({status: false, message: "Invalid token",data:null });

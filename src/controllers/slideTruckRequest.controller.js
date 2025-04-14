@@ -2,17 +2,16 @@ import * as requestService from "../services/slideTruckRequest.service.js";
 
 export default {
   create: async (req, res) => {
-    // {vehicleId,driverId,requestTime,price,note,image,latitude,longitude} = req.body
     const { uid } = req.user;
     try {
-      const request = await requestService.createRequest({
+      const data = await requestService.createRequest({
         ...req.body,
         customerId: uid,
       });
       res.status(201).json({
         status: true,
         message: "Created slide truck request",
-        data: request,
+        data,
       });
     } catch (err) {
       res.status(400).json({ status: false, message: err.message, data: null });
@@ -21,11 +20,11 @@ export default {
   getAll: async (req, res) => {
     const { uid } = req.user;
     try {
-      const requests = await requestService.getUserRequests(uid);
-      res.json({
+      const data = await requestService.getUserRequests({ uid });
+      res.status(200).json({
         status: true,
         message: "Success get all user request.",
-        data: requests,
+        data,
       });
     } catch (err) {
       res.status(400).json({ status: false, message: err.message, data: null });
@@ -35,14 +34,14 @@ export default {
     const { id } = req.params;
     const { uid } = req.user;
     try {
-      const request = await requestService.getRequestById({
+      const data = await requestService.getRequestById({
         id,
         customerId: uid,
       });
-      res.json({
+      res.status(200).json({
         status: true,
         message: `Success get user request id : ${id}`,
-        data: request,
+        data,
       });
     } catch (err) {
       res.status(400).json({ status: false, message: err.message, data: null });
@@ -51,10 +50,10 @@ export default {
   cancel: async (req, res) => {
     const { id } = req.params;
     try {
-      const updated = await requestService.cancelRequest(id);
-      res.json({
-        status: updated.status,
-        message: updated.message,
+      await requestService.cancelRequest({ id });
+      res.status(200).json({
+        status: true,
+        message: `Cancelled slide request id ${id}`,
         data: null,
       });
     } catch (err) {
@@ -65,11 +64,11 @@ export default {
     const { id } = req.params;
     const { status } = req.body;
     try {
-      const updated = await requestService.updateRequestStatus(id, status);
-      res.json({
-        status: updated.status,
-        message: updated.message,
-        data: updated.data,
+      const data = await requestService.updateRequestStatus({ id, status });
+      res.status(200).json({
+        status: true,
+        message: `Updated status(${status}) slide request id ${id}`,
+        data,
       });
     } catch (err) {
       res.status(400).json({ status: false, message: err.message, data: null });

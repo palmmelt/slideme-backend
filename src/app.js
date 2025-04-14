@@ -18,6 +18,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", routes.auth);
 app.use("/api/slide-truck-rquest", routes.slideTruckRequest);
+app.use("/api/gps", routes.gps);
+app.use("/api/job", routes.job);
+app.use("/api/profile", routes.profile);
+app.use("/api/ratting", routes.ratting);
+app.use("/api/vehicle", routes.vehicle);
 
 app.get("/", (req, res) => {
   res.json({

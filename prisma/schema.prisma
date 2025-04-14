@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -21,92 +14,120 @@ model Customer {
   phoneNumber   String?        @map("phone_number")
   password      String?
   email         String         @unique
+  latitude      Decimal?       @db.Decimal(10, 8)
+  longitude     Decimal?       @db.Decimal(11, 8)
   slideRequests SlideRequest[]
+  DriverRating  DriverRating[]
 
   @@map("customers")
 }
 
 model Driver {
-  id                Int     @id @default(autoincrement())
-  slideCarServiceId Int     @map("slide_car_service_id")
-  vihicleId         Int     @map("vihicle_id")
+  id                Int             @id @default(autoincrement())
+  slideCarServiceId Int             @map("slide_car_service_id")
   name              String?
   surname           String?
-  phoneNumber       String? @map("phone_number")
+  phoneNumber       String?         @map("phone_number")
   password          String?
-  idNumber          String  @unique @map("id_number")
-  email             String  @unique
-  bankAccountNumber String? @map("bank_account_number")
-  bankName          String? @map("bank_name")
+  idNumber          String          @unique @map("id_number")
+  email             String          @unique
+  bankAccountNumber String?         @map("bank_account_number")
+  bankName          String?         @map("bank_name")
   image             String?
+  latitude          Decimal?        @db.Decimal(10, 8)
+  longitude         Decimal?        @db.Decimal(11, 8)
+  vehicleId         Int             @map("vehicle_id")
+  slideCarService   SlideCarService @relation(fields: [slideCarServiceId], references: [id])
+  vehicle           Vehicle         @relation(fields: [vehicleId], references: [id])
+  slideRequests     SlideRequest[]
+  Bid               Bid[]
+  DriverRating      DriverRating[]
 
-  slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
-  vihicle         Vehicle         @relation(fields: [vihicleId], references: [id])
-  slideRequests   SlideRequest[]
-
+  @@index([slideCarServiceId], map: "drivers_slide_car_service_id_fkey")
+  @@index([vehicleId], map: "drivers_vehicle_id_fkey")
   @@map("drivers")
 }
 
 model Vehicle {
-  id                Int            @id @default(autoincrement())
-  slideCarServiceId Int            @map("slide_car_service_id")
+  id                Int             @id @default(autoincrement())
+  slideCarServiceId Int             @map("slide_car_service_id")
   brand             String?
   model             String?
-  licensePlate      String         @unique @map("license_plate")
-  vin               String         @unique
+  licensePlate      String          @unique @map("license_plate")
+  vin               String          @unique
+  Driver            Driver[]
   slideRequests     SlideRequest[]
+  slideCarService   SlideCarService @relation(fields: [slideCarServiceId], references: [id])
 
-  slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
-  Driver          Driver[]
-
+  @@index([slideCarServiceId], map: "vehicles_slide_car_service_id_fkey")
   @@map("vehicles")
 }
 
 model SlideRequest {
-  id          Int      @id @default(autoincrement())
-  customerId  Int
-  vehicleId   Int
-  driverId    Int
-  requestTime DateTime @map("request_time")
-  status      Status
-  price       Decimal? @db.Decimal(10, 2)
-  note        String?
-  image       String?
-  latitude    Decimal? @db.Decimal(10, 8)
-  longitude   Decimal? @db.Decimal(11, 8)
-
-  customer     Customer      @relation(fields: [customerId], references: [id])
-  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id])
-  driver       Driver        @relation(fields: [driverId], references: [id])
-  chatMessages ChatMessage[]
+  id           Int           @id @default(autoincrement())
+  customerId   Int
+  vehicleId    Int?
+  driverId     Int?
+  requestTime  DateTime      @map("request_time")
+  status       Status
+  price        Decimal?      @db.Decimal(10, 2)
+  note         String?
+  image        String?
+  latitude     Decimal?      @db.Decimal(10, 8)
+  longitude    Decimal?      @db.Decimal(11, 8)
   bids         Bid[]
+  chatMessages ChatMessage[]
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  driver       Driver?       @relation(fields: [driverId], references: [id])
+  vehicle      Vehicle?      @relation(fields: [vehicleId], references: [id])
 
+  @@index([customerId], map: "slide_requests_customerId_fkey")
+  @@index([driverId], map: "slide_requests_driverId_fkey")
+  @@index([vehicleId], map: "slide_requests_vehicleId_fkey")
   @@map("slide_requests")
 }
 
+model DriverRating {
+  id         Int      @id @default(autoincrement())
+  rating     Int      @default(0) // 1-5
+  comment    String?
+  driverId   Int
+  customerId Int
+  createdAt  DateTime @default(now())
+
+  driver   Driver   @relation(fields: [driverId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@unique([driverId, customerId]) // หนึ่งคนรีวิวได้ครั้งเดียว
+  @@index([driverId])
+  @@map("driver_ratings")
+}
+
 model ChatMessage {
-  id             Int      @id @default(autoincrement())
-  slideRequestId Int      @map("slide_request_id")
+  id             Int          @id @default(autoincrement())
+  slideRequestId Int          @map("slide_request_id")
   sender         ChatRole
   message        String
-  sentAt         DateTime @map("sent_at")
+  sentAt         DateTime     @map("sent_at")
+  slideRequest   SlideRequest @relation(fields: [slideRequestId], references: [id])
 
-  slideRequest SlideRequest @relation(fields: [slideRequestId], references: [id])
-
+  @@index([slideRequestId], map: "chat_messages_slide_request_id_fkey")
   @@map("chat_messages")
 }
 
 model Bid {
-  id                Int       @id @default(autoincrement())
-  slideRequestId    Int       @map("slide_request_id")
-  slideCarServiceId Int       @map("slide_car_service_id")
-  price             Decimal   @db.Decimal(10, 2)
+  id                Int              @id @default(autoincrement())
+  slideRequestId    Int              @map("slide_request_id")
+  driverId          Int              @map("slide_car_service_id")
+  slideCarServiceId Int?
+  price             Decimal          @db.Decimal(10, 2)
   isAccepted        Boolean
   acceptedTime      DateTime?
+  driver            Driver           @relation(fields: [driverId], references: [id])
+  slideRequest      SlideRequest     @relation(fields: [slideRequestId], references: [id])
+  SlideCarService   SlideCarService? @relation(fields: [slideCarServiceId], references: [id])
 
-  slideRequest    SlideRequest    @relation(fields: [slideRequestId], references: [id])
-  slideCarService SlideCarService @relation(fields: [slideCarServiceId], references: [id])
-
+  @@index([slideRequestId], map: "bids_slide_request_id_fkey")
   @@map("bids")
 }
 
@@ -114,9 +135,9 @@ model SlideCarService {
   id          Int       @id @default(autoincrement())
   serviceName String?   @map("service_name")
   description String?
+  bids        Bid[]
   drivers     Driver[]
   vehicles    Vehicle[]
-  bids        Bid[]
 
   @@map("slide_car_service")
 }

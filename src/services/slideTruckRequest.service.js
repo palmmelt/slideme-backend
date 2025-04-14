@@ -1,9 +1,5 @@
 export const createRequest = async ({
   customerId,
-  vehicleId,
-  driverId,
-  status,
-  price,
   note,
   image,
   latitude,
@@ -12,10 +8,9 @@ export const createRequest = async ({
   return await prisma.slideRequest.create({
     data: {
       customerId,
-      vehicleId,
-      driverId,
-      status,
-      price,
+      vehicleId: null,
+      driverId: null,
+      price: null,
       note,
       image,
       latitude,
@@ -26,52 +21,32 @@ export const createRequest = async ({
   });
 };
 
-export const getUserRequests = async (customerId) => {
-  return await prisma.slideRequest.findMany({ where: { customerId } });
+export const getUserRequests = async ({uid}) => {
+  return await prisma.slideRequest.findMany({ where: { uid } });
 };
 
 export const getRequestById = async ({ id, customerId }) => {
   return await prisma.slideRequest.findUnique({ where: { id, customerId } });
 };
 
-export const cancelRequest = async (id) => {
-  try {
-    const updateRequest = await prisma.slideRequest.update({
-      where: { id },
-      data: { status: "cancelled" },
-    });
+export const cancelRequest = async ({ id }) => {
+  const data = await prisma.slideRequest.update({
+    where: { id },
+    data: { status: "cancelled" },
+  });
 
-    return {
-      status: true,
-      message: `canceled request id : ${updateRequest.id}`,
-    };
-  } catch (error) {
-    return {
-      status: false,
-      message: `can't cancel request id: ${id}`,
-      error: error.message || error,
-    };
-  }
+  if (!data) throw new Error(`Can't find slide request id : ${id}`);
+
+  return data;
 };
 
-export const updateRequestStatus = async (id, status) => {
-  try {
-    const updateRequest = await prisma.slideRequest.update({
-      where: { id },
-      data: { status },
-    });
+export const updateRequestStatus = async ({ id, status }) => {
+  const data = await prisma.slideRequest.update({
+    where: { id },
+    data: { status },
+  });
 
-    return {
-      status: true,
-      message: `updated request id : ${updateRequest.id}`,
-      data: updateRequest,
-    };
-  } catch (error) {
-    return {
-      status: false,
-      message: `can't update request id : ${id}`,
-      data: null,
-      error: error.message || error,
-    };
-  }
+  if (!data) throw new Error(`Can't update slide request id : ${id}`);
+
+  return data;
 };
